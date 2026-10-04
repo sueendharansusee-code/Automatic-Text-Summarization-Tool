@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatic Text Summarization Tool | NLP Dashboard</title>
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <div class="app-container">
+        <!-- Navigation / Header -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>AutoSummarize <span class="badge-nlp">NLP Engine</span></h1>
+                    <p>Automatic Extractive Text Summarization Tool</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="btn-toggle-history" class="btn btn-secondary">
+                    <i class="fa-solid fa-clock-rotate-left"></i> History Log
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Dashboard -->
+        <main class="dashboard-grid">
+            <!-- Left Panel: Input & Settings -->
+            <section class="panel panel-input">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-file-lines"></i> Source Text Input</h2>
+                    <div class="quick-tools">
+                        <button id="btn-sample" class="btn-tool" title="Load sample academic text">
+                            <i class="fa-solid fa-flask"></i> Sample Text
+                        </button>
+                        <button id="btn-paste" class="btn-tool" title="Paste from clipboard">
+                            <i class="fa-regular fa-paste"></i> Paste
+                        </button>
+                        <button id="btn-clear" class="btn-tool btn-tool-danger" title="Clear input text">
+                            <i class="fa-solid fa-trash-can"></i> Clear
+                        </button>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <textarea id="text-input" placeholder="Paste your article, research paper, study material, or long document here..." rows="14"></textarea>
+                    <div class="text-counter">
+                        <span id="char-count">0 characters</span> • <span id="word-count">0 words</span>
+                    </div>
+                </div>
+
+                <!-- Controls & Options -->
+                <div class="controls-card">
+                    <div class="control-group">
+                        <label><i class="fa-solid fa-sliders"></i> Summary Target Length:</label>
+                        <div class="length-selector">
+                            <label class="radio-chip">
+                                <input type="radio" name="summary-length" value="short">
+                                <span class="chip-label">
+                                    <strong>Short</strong>
+                                    <small>~20% ratio</small>
+                                </span>
+                            </label>
+                            <label class="radio-chip">
+                                <input type="radio" name="summary-length" value="medium" checked>
+                                <span class="chip-label">
+                                    <strong>Medium</strong>
+                                    <small>~35% ratio</small>
+                                </span>
+                            </label>
+                            <label class="radio-chip">
+                                <input type="radio" name="summary-length" value="detailed">
+                                <span class="chip-label">
+                                    <strong>Detailed</strong>
+                                    <small>~50% ratio</small>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button id="btn-summarize" class="btn btn-primary btn-block">
+                        <span class="btn-text"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Summary</span>
+                        <span class="spinner hidden"><i class="fa-solid fa-circle-notch fa-spin"></i> Processing NLP...</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Right Panel: Summary & Analytics -->
+            <section class="panel panel-output">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-square-poll-vertical"></i> Summary Output & Metrics</h2>
+                    <div class="output-actions">
+                        <button id="btn-copy" class="btn-tool" disabled title="Copy summary to clipboard">
+                            <i class="fa-regular fa-copy"></i> Copy
+                        </button>
+                        <button id="btn-download" class="btn-tool" disabled title="Download summary as TXT file">
+                            <i class="fa-solid fa-download"></i> Download TXT
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Analytical Metrics Grid -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon icon-blue"><i class="fa-solid fa-align-left"></i></div>
+                        <div class="metric-data">
+                            <span class="metric-value" id="stat-orig-words">0</span>
+                            <span class="metric-label">Original Words</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon icon-green"><i class="fa-solid fa-compress"></i></div>
+                        <div class="metric-data">
+                            <span class="metric-value" id="stat-sum-words">0</span>
+                            <span class="metric-label">Summary Words</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon icon-purple"><i class="fa-solid fa-percent"></i></div>
+                        <div class="metric-data">
+                            <span class="metric-value" id="stat-compression">0%</span>
+                            <span class="metric-label">Compression Rate</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon icon-orange"><i class="fa-solid fa-list-ol"></i></div>
+                        <div class="metric-data">
+                            <span class="metric-value" id="stat-sentences">0 / 0</span>
+                            <span class="metric-label">Sentences Ratio</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info/Warning Banner for Edge Cases -->
+                <div id="short-text-alert" class="alert-banner hidden">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span id="alert-message">Notice: Input text is very short; displaying complete text as summary.</span>
+                </div>
+
+                <!-- Output Display Container -->
+                <div class="output-container">
+                    <div id="output-placeholder" class="placeholder-state">
+                        <i class="fa-solid fa-newspaper"></i>
+                        <p>Your generated summary will appear here once processed.</p>
+                    </div>
+                    <div id="output-text" class="summary-content hidden"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- History Drawer / Modal Section -->
+        <section id="history-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fa-solid fa-database"></i> SQLite Summary History</h3>
+                    <div class="modal-controls">
+                        <button id="btn-clear-history" class="btn btn-sm btn-outline-danger">
+                            <i class="fa-solid fa-trash-arrow-up"></i> Clear All History
+                        </button>
+                        <button id="btn-close-history" class="btn-close">&times;</button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Date & Time</th>
+                                    <th>Length</th>
+                                    <th>Word Reduction</th>
+                                    <th>Compression %</th>
+                                    <th>Summary Preview</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody">
+                                <tr>
+                                    <td colspan="7" class="text-center py-4 text-muted">Loading history...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Academic Project for <strong>Text & Speech Analysis</strong> | Built with Python Flask, NLTK & SQLite</p>
+        </footer>
+    </div>
+
+    <!-- Main JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
